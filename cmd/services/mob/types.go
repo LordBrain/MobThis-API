@@ -1,8 +1,16 @@
 package mob
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
-type MobSession struct {
+var (
+	MobSession mobSession
+	Mutex      sync.Mutex
+)
+
+type mobSession struct {
 	SessionName string   `json:"session_name"`
 	Mobbers     []string `json:"mobbers"`
 	State       string   `json:"state"`
@@ -14,3 +22,14 @@ type MobSession struct {
 }
 
 var CTX = context.Background()
+
+type NewMobSession struct {
+	Mobber   string `json:"mobber"`
+	GitRepo  string `json:"git_repo"`
+	Duration int    `json:"duration"`
+	Retro    bool   `json:"retro"`
+}
+
+type JoinMob struct {
+	Mobber string `json:"mobber"`
+}
