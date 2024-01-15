@@ -4,19 +4,22 @@ import (
 	"github.com/LordBrain/MobThis-API/cmd/utils/httperr"
 )
 
-func (mob *mobSession) SessionLeave() (error httperr.HttpErr) {
+func (mob *mobSession) SessionLeave(mobber string) (error httperr.HttpErr) {
 
-	// if len(mob.Mobbers) == 0 {
-	// 	return httperr.New(400, "Missing Mobber", "Missing Mobber")
-	// }
-	// err := redis.LRem(CTX, mob.SessionName+"-mobbers", 1, mob.Mobbers[0]).Err()
-	// if err != nil {
-	// 	return httperr.New(500, "Redis Error", err.Error())
-	// }
-	// err = redis.Expire(CTX, mob.SessionName+"-mobbers", 60*time.Second).Err()
-	// if err != nil {
-	// 	return httperr.New(500, "Redis Error", err.Error())
-	// }
+	index := -1
+
+	// Find the index of the target string
+	for sliceIndex, mobberName := range MobSession.Mobbers {
+		if mobberName == mobber {
+			index = sliceIndex
+			break
+		}
+	}
+
+	// If the target string is found, remove it using slicing
+	if index != -1 {
+		MobSession.Mobbers = append(MobSession.Mobbers[:index], MobSession.Mobbers[index+1:]...)
+	}
 
 	return nil
 

@@ -17,11 +17,17 @@ func AddMobsV1(router *gin.Engine) {
 	router.GET("/v1/mob/:mobsession", func(c *gin.Context) {
 		getMob(c)
 	})
-	// router.DELETE("/v1/mob/:mobsession", func(c *gin.Context) {
-	// 	leaveMob(c)
-	// })
+	router.DELETE("/v1/mob/:mobsession", func(c *gin.Context) {
+		leaveMob(c)
+	})
 	router.POST("/v1/mob/:mobsession/start", func(c *gin.Context) {
 		startMob(c)
+	})
+	router.POST("/v1/mob/:mobsession/rotate", func(c *gin.Context) {
+		rotateMob(c)
+	})
+	router.POST("/v1/mob/:mobsession/end", func(c *gin.Context) {
+		endMob(c)
 	})
 }
 
@@ -79,49 +85,59 @@ func joinMob(c *gin.Context) {
 
 }
 
-// func leaveMob(c *gin.Context) {
-// 	mobSessionName := c.Param("mobsession")
-// 	var leaveMob mob.MobSession
+func leaveMob(c *gin.Context) {
+	mobSessionName := c.Param("mobsession")
+	var leaveMob mob.JoinMob
 
-// 	err := c.ShouldBindJSON(&leaveMob)
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"Error": "Bad JSON input, could not bind.", "Details": err.Error()})
-// 		return
-// 	}
+	err := c.ShouldBindJSON(&leaveMob)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": "Bad JSON input, could not bind.", "Details": err.Error()})
+		return
+	}
 
-// 	leaveMob.SessionName = mobSessionName
-// 	// error := leaveMob.SessionLeave(redisClient)
+	if mobSessionName == mob.MobSession.SessionName {
+		mob.MobSession.SessionLeave(leaveMob.Mobber)
+	}
 
-// 	// if error != nil {
-// 	// 	c.JSON(error.StatusCode(), error.GetErrorJSON())
-// 	// 	return
-// 	// }
+	c.JSON(http.StatusOK, leaveMob)
 
-// 	c.JSON(http.StatusOK, leaveMob)
-
-// }
+}
 
 func startMob(c *gin.Context) {
 	mob.Mutex.Lock()
 	defer mob.Mutex.Unlock()
 	mobSessionName := c.Param("mobsession")
-	// var joinMob mob.JoinMob
-
-	// err := c.ShouldBindJSON(&joinMob)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"Error": "Bad JSON input, could not bind.", "Details": err.Error()})
-	// 	return
-	// }
 
 	if mobSessionName == mob.MobSession.SessionName {
 		mob.MobSession.SessionStart()
 
-		// err := mob.MobSession.SessionJoin(joinMob)
-		// if err != nil {
-		// 	c.JSON(err.StatusCode(), err.ErrorMessage())
-		// } else {
-		// 	c.JSON(http.StatusOK, mob.MobSession)
-		// }
+	} else {
+		c.JSON(http.StatusNotFound, "Session not found")
+	}
+
+}
+
+func rotateMob(c *gin.Context) {
+	mob.Mutex.Lock()
+	defer mob.Mutex.Unlock()
+	mobSessionName := c.Param("mobsession")
+
+	if mobSessionName == mob.MobSession.SessionName {
+		mob.MobSession.SessionRotate()
+
+	} else {
+		c.JSON(http.StatusNotFound, "Session not found")
+	}
+
+}
+
+func endMob(c *gin.Context) {
+	mob.Mutex.Lock()
+	defer mob.Mutex.Unlock()
+	mobSessionName := c.Param("mobsession")
+
+	if mobSessionName == mob.MobSession.SessionName {
+		mob.MobSession.SessionEnd()
 
 	} else {
 		c.JSON(http.StatusNotFound, "Session not found")
